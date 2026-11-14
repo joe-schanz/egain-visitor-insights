@@ -63,7 +63,7 @@ ISP = (
     r"sk broad|superonline|netia|plusnet|1und1|versatel|play\.pl|converge|leaptel|bevcomm|multi\.net|"
     r"videotron|sunrise|cellcom|tm\.com\.my|tdc|eir\.ie|dna\.fi|bahnhof|ewe|drei\.at|teracom|netcom-bw|"
     r"bluwifi|samruddhi|wave broadband|cable onda|sky uk|deutsche telekom|wow!|frontiernet|bell canada|"
-    r"belwue|dfn\.de|jisc|aveniq|xenox|intercom online|amx argentina|vmedia|special communication|transit as|ecuanet|tt dotcom|metronet|teljet|fastmetrics|comunicaciones|wow tel|sercom|ankhnet|creative bangladesh"
+    r"csl limited|belwue|dfn\.de|jisc|aveniq|xenox|intercom online|amx argentina|vmedia|special communication|transit as|ecuanet|tt dotcom|metronet|teljet|fastmetrics|comunicaciones|wow tel|sercom|ankhnet|creative bangladesh"
 )
 
 # Strong signals that an AS / registry name is an end-user organisation, not a network provider.

@@ -195,3 +195,24 @@ here and would fill the 181 "size unknown" accounts).
 **Also tightened:** registry names that are pool or reserved labels, or contain long digit strings
 ("PPPoX Pool - Rback9", "BMF VoN OAM - RSVD"), and scanners/crawlers (Censys, Qwant, Hornetsecurity) are no
 longer accounts.
+
+## D-015 · Account score = Fit + Intent + Engagement (0–100), fully explainable
+**Decision:** Every point has a reason the rep can read in the app (`pipeline/05_score.py`).
+
+| Part | Max | Rules |
+|---|---|---|
+| **Fit** | 30 | Sector: eGain core vertical (financial services, insurance, healthcare, government, telecom, utilities, retail, travel) 15 · technology 8 · education 0 · other 4. Size: 10K+ employees 15 · 1K–10K 12 · 200–1K 6 · <200 2 · unknown 5 |
+| **Intent** | 50 | Strongest signal per group, counted once: conversion page 20 · integration 10 · proof/analyst 8 · product 6 · industry/solutions 6 · webinar/resource 4 · education 2 |
+| **Engagement** | 20 | 3+ visits 6 (2 visits 3) · 3+ people 6 (2 people 3) · 5+ distinct pages 4 · active in the final 7 days of data 4 |
+
+**Tiers:** Hot ≥ 60 *and* a target sector (not education / unknown) · Warm 35–59 · Cold < 35.
+**Guard rails:** accounts that look like competitors/partners (NICE inContact, Genesys …), job seekers (mostly careers
+pages) or investors (mostly IR pages) are capped at 34 and flagged "review before outreach".
+**Rejected:** a machine-learned score. With no closed-won labels there is nothing to train on, and a rep needs
+to trust *why* an account is hot. In production, these weights would be tuned against pipeline outcomes from CRM.
+**Dossier:** each account gets a one-sentence headline, talking points generated from rules (likely tech
+stack from integration pages, product interest, industry story, buying-group size, linked CRM contacts, a
+sector talk track) and a next action tied to the tier.
+
+**Also:** two web domains belonging to one organisation (jpmchase.com, jpmorgan.com) merge into one account
+through the shared Wikidata ID.

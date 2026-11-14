@@ -21,6 +21,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -49,7 +50,7 @@ SECTOR_RULES = [
                            r"investment|capital markets|payment|worldpay|stock exchange|moex|siac|brokerage|"
                            r"jpmorgan|jpmchase|chase|citibank|capital one|squarepoint|asset management|lending|fintech|early warning"),
     ("Insurance", r"insurance|assurance|insurer|blue cross|blue shield|health plan|medica\b|hartford"),
-    ("Healthcare & Life Sciences", r"hospital|medical|health|clinic|pharma|biotech|biopharm|csl\b|nih\b"),
+    ("Healthcare & Life Sciences", r"hospital|medical|health|clinic|pharma|biotech|biopharm|nih\b"),
     ("Government & Public Sector", r"government|ministry|department of|state of|county|city of|city hall|"
                                    r"council|federal|revenue service|\.gov\b|gov\.|veterans|public library|"
                                    r"agency|military|police|municipal"),
@@ -81,7 +82,7 @@ def clean_name(name: str) -> str:
     while prev != n:
         prev, n = n, LEGAL_SUFFIX.sub("", n).strip(" ,.&")
     if n.isupper() and len(n) > 4:
-        n = n.title()
+        n = re.sub(r"(?<=\s)(Of|The|And|For|In|De)\b", lambda m: m.group(1).lower(), n.title())
     return re.sub(r"\s+", " ", n)
 
 
@@ -253,7 +254,9 @@ def main() -> None:
             "account_key": a.account_key, "name": name, "raw_name": a.raw_name, "domain": a.domain,
             "id_source": a.id_source, "wikidata_id": a.qid, "wikidata_match": a.match,
             "description": d.get("desc", ""), "industries": d.get("industries", []),
-            "sector": next((s for s, rx in _SECTOR_RX if rx.search(blob)), "Other"),
+            # the organisation's own name/domain decides first (Cisco is tech, even if Wikidata says telecom)
+            "sector": next((s for s, rx in _SECTOR_RX if rx.search(f"{a.raw_name} {name} {a.domain}")),
+                           next((s for s, rx in _SECTOR_RX if rx.search(blob)), "Other")),
             "employees": employees,
             "revenue": rev[1] if rev else None,
             "revenue_currency": CURRENCY.get(rev[2], "") if rev else "",
@@ -264,7 +267,14 @@ def main() -> None:
                           "SMB (<200)" if employees else "Unknown"),
         })
     out = pd.DataFrame(rows)
+    # one account per real-world organisation: jpmchase.com and jpmorgan.com are both JPMorgan Chase
+    canon = dict(zip(out["account_key"], np.where(out["wikidata_id"].ne(""), "wd:" + out["wikidata_id"],
+                                                  out["account_key"])))
+    out["account_key"] = out["account_key"].map(canon)
+    out = out.sort_values("wikidata_match", key=lambda s: s.map({"website": 0, "name": 1, "none": 2}))
+    out = out.drop_duplicates("account_key")
     out.to_parquet(INTERIM / "accounts_firmo.parquet", index=False)
+    org["account_key"] = org["account_key"].map(canon)
     org[["ip", "account_key"]].to_parquet(INTERIM / "ip_account.parquet", index=False)
 
     print(f"{len(out)} accounts | wikidata match: {out['wikidata_match'].value_counts().to_dict()}")
