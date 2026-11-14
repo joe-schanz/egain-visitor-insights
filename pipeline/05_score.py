@@ -68,6 +68,17 @@ def title_from_path(path: str) -> str:
     return re.sub(r"[-_]+", " ", slug).strip().capitalize()[:80]
 
 
+MARKETPLACES = {"appfoundry.genesys.com": "Genesys", "appexchange.salesforce.com": "Salesforce",
+                "store.servicenow.com": "ServiceNow", "aws.amazon.com": "Amazon Connect",
+                "appsource.microsoft.com": "Microsoft Dynamics", "marketplace.zendesk.com": "Zendesk",
+                "talkdesk.com": "Talkdesk", "five9.com": "Five9"}
+
+
+def nice_date(iso: str) -> str:
+    d = pd.Timestamp(iso)
+    return f"{d:%b} {d.day}"
+
+
 def join_list(xs: list[str]) -> str:
     xs = list(xs)
     return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " and " + xs[-1]
@@ -115,8 +126,8 @@ def brief(a: dict) -> dict:
     size = (f"{a['employees']:,} employees" if a["employees"] else a["size_band"].split(" (")[0].lower()
             if a["size_band"] != "Unknown" else "")
     who = ", ".join(x for x in [a["sector"] if a["sector"] != "Other" else "", size, a["hq"]] if x)
-    period = (f"between {a['first_seen'][:10]} and {a['last_seen'][:10]}" if a["first_seen"][:10] != a["last_seen"][:10]
-              else f"on {a['first_seen'][:10]}")
+    period = (f"between {nice_date(a['first_seen'])} and {nice_date(a['last_seen'])}"
+              if a["first_seen"][:10] != a["last_seen"][:10] else f"on {nice_date(a['first_seen'])}")
     headline = (f"{a['visitors']} {'person' if a['visitors'] == 1 else 'people'} from {a['name']}"
                 f"{f' ({who})' if who else ''} made {a['visits']} visit{'s' if a['visits'] != 1 else ''} "
                 f"and viewed {a['unique_pages']} page{'s' if a['unique_pages'] != 1 else ''} {period}.")
@@ -128,6 +139,8 @@ def brief(a: dict) -> dict:
         names = [k for k, _ in a["integrations"][:3]]
         points.append(f"Likely tech stack: researched eGain for {join_list(names)}. Lead with the native "
                       f"{names[0]} integration and ask how knowledge reaches their agents today.")
+    for host, platform in a["marketplace_refs"]:
+        points.append(f"Arrived from {host} (the {platform} app marketplace): strong sign they run {platform}.")
     if a["products"]:
         points.append(f"Product interest: {join_list([k for k, _ in a['products'][:3]])}.")
     if a["industries"]:
@@ -242,6 +255,8 @@ def main() -> None:
             "top_pages": [[p, int(c)] for p, c in sg["path"].value_counts().head(10).items()],
             "sources": {k: int(v) for k, v in sess.loc[g["session_id"].unique(), "ref_class"].value_counts().items()},
             "search_terms_hint": sorted(sess.loc[g["session_id"].unique(), "ref_host"].dropna().unique().tolist())[:5],
+            "marketplace_refs": sorted({(h, p) for h in sess.loc[g["session_id"].unique(), "ref_host"].dropna()
+                                        for m, p in MARKETPLACES.items() if h and h.endswith(m)}),
             "contacts": real_contacts.loc[real_contacts["account_key"].eq(key), "uid"].tolist(),
             "flags": flags, "noise_only": noise_only,
             "visit_log": visits[:50],

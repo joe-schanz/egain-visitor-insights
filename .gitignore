@@ -8,3 +8,4 @@ data/interim/
 secrets/
 node_modules/
 data/reference/
+web/dist/

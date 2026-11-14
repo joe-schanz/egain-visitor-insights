@@ -216,3 +216,17 @@ sector talk track) and a next action tied to the tier.
 
 **Also:** two web domains belonging to one organisation (jpmchase.com, jpmorgan.com) merge into one account
 through the shared Wikidata ID.
+
+## D-016 · The web app
+**Decision:** React + Vite single-page app reading four precomputed JSON files (`web/public/data/`, ~2.4 MB total;
+accounts 0.6 MB). Recharts for the two stacked charts; simple CSS bars everywhere else. Deployed as static files on Vercel.
+**Pages:** Accounts (search + filter by tier, sector, size, country, interest; sortable) → Account dossier (score
+breakdown, talking points, next step, interests, visit timeline, identification evidence) · Email contacts (scanner vs
+human per campaign; follow-up list) · Anonymous visitors (high intent, not identifiable for free) · Traffic & data
+quality (funnel, daily traffic with the gap shown explicitly) · How it works.
+**Choices:**
+- Filters live in the URL (`/?tier=Hot&interest=Genesys`), so a rep can bookmark or share a view.
+- Visitor IPs are masked in the UI (`16.98.8.x`); the product is about companies, not individuals.
+- Light and dark themes follow the OS; layout works down to phone width.
+- Partner-marketplace referrals (e.g. arriving from `appfoundry.genesys.com`) become a tech-stack talking point.
+**Rejected:** a server/API (nothing to compute at request time); a component library (heavier, less distinctive).
