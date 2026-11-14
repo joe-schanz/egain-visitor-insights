@@ -1,0 +1,76 @@
+{
+  "raw_hits": 530423,
+  "raw_ips": 91288,
+  "date_range": [
+    "2025-02-01 00:17:10+00:00",
+    "2025-02-25 00:16:48+00:00"
+  ],
+  "hits_by_class": {
+    "bot_distributed": 120263,
+    "email_scanner": 101320,
+    "bot_declared": 96943,
+    "human": 95547,
+    "crawler": 67268,
+    "monitor": 45001,
+    "probe": 2997,
+    "bot_suspected": 655,
+    "asset": 429
+  },
+  "ips_by_class": {
+    "asset": 302,
+    "bot_declared": 4481,
+    "bot_distributed": 54239,
+    "bot_suspected": 113,
+    "crawler": 2312,
+    "email_scanner": 1550,
+    "human": 30083,
+    "monitor": 183,
+    "probe": 91
+  },
+  "human_hits": 95547,
+  "human_ips": 30083,
+  "human_sessions": 62217,
+  "human_sessions_with_signal": 51886,
+  "gateway_ips": 1310,
+  "monitor_ips": 204,
+  "crawler_ips": 160,
+  "contacts_total": 45736,
+  "contacts_by_status": {
+    "scanner_only": 40676,
+    "clicked": 4909,
+    "engaged": 151
+  },
+  "campaign_clicks_total": 124241,
+  "campaign_clicks_scanner": 101320,
+  "human_category_hits": {
+    "product": 25689,
+    "home": 16250,
+    "industry": 7621,
+    "education": 7423,
+    "careers": 7349,
+    "investor": 6484,
+    "opt_out": 5557,
+    "legal": 4890,
+    "news": 4453,
+    "topic_content": 1908,
+    "integration": 1327,
+    "conversion": 1314,
+    "webinar": 1192,
+    "company": 1066,
+    "resource": 774,
+    "partner": 686,
+    "proof": 644,
+    "customer": 525,
+    "solutions": 395
+  },
+  "human_ref_class": {
+    "direct": 46746,
+    "search": 8446,
+    "internal": 5927,
+    "referral": 711,
+    "social": 207,
+    "review_analyst": 137,
+    "email": 29,
+    "ai_assistant": 14
+  }
+}

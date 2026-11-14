@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+.DS_Store
+# raw logs are eGain's data: kept out of the public repo
+data/raw/
+data/interim/
+.env
+secrets/
+node_modules/
