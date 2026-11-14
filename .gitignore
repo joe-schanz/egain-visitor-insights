@@ -7,3 +7,4 @@ data/interim/
 .env
 secrets/
 node_modules/
+data/reference/

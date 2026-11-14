@@ -103,5 +103,73 @@ splitting by user agent reduces that.
 
 ## D-008 · What's still in the "human" set and handled later
 - **Cloud/datacenter IPs** (AWS 3.x/44.x/52.x/54.x etc.) still show crawler-like visits. These get removed
-  in the enrichment step using the IP owner's network type (hosting vs. ISP vs. business).
-- **eGain's own employees** get flagged in enrichment by matching the IP owner to eGain.
+  in the identification step using the IP owner's network type (D-010).
+- **eGain's own employees** are flagged in identification (D-011).
+
+## D-009 · IP → organisation: two free sources, cheapest first
+**Decision:**
+1. **IPinfo Lite database**, downloaded once (27 MB, free, unlimited) and queried locally. Gives the network
+   owner (ASN name + domain) and country for every IP in milliseconds, no API limits.
+2. **RDAP** (the modern WHOIS, run by the regional internet registries, free) for human visitors on ISP or
+   unrecognised networks, highest intent first. ISPs often register which *customer* a block belongs to,
+   e.g. a Verizon Business block registered to *GuideStone Financial Resources*, or an AT&T block to
+   *Alberici Group*.
+
+**Cost controls:** RDAP is rate-limited (~1 lookup/sec), so results are cached on disk and a single lookup
+covers every IP in the returned block, but only when that is safe: small blocks (≤ 4,096 addresses) and
+residential pools. Large business blocks are looked up per IP, because the ISP may have sub-assigned a
+smaller piece to a named customer.
+
+**Rejected:** Paid reverse-IP services (Clearbit Reveal / HubSpot, 6sense, Demandbase, KickFire, Dealfront):
+much higher match rates, but they cost money. **They plug into exactly this step**; the rest of the
+pipeline doesn't change. Reverse DNS: not used in this prototype. Corporate hostnames are uncommon on
+modern networks, so RDAP was the better use of limited time. It's a reasonable next addition.
+
+**Honest limitation:** Only IPs that a company *owns or has registered* can be named. Employees working from
+home on Comcast, or behind Zscaler, can't be identified for free. That's the gap commercial
+identity graphs fill.
+
+## D-010 · Network type decides whether a visitor can be an account
+**Decision:** Each network gets one type, from readable regex rules (`pipeline/networks.py`), checked in order:
+
+| Type | Meaning | What the app does |
+|---|---|---|
+| egain | eGain's own offices/VPN | excluded (employees) |
+| security_proxy | Zscaler, Netskope, Proofpoint … | counted as "enterprise user, company hidden" |
+| hosting | cloud, datacenter, VPN, proxy farms, backbones | excluded from accounts (automation/anonymised) |
+| organization | the IP block belongs to a named organisation | **becomes an account** |
+| isp | consumer/business internet provider | account only if RDAP names a customer |
+| unverified | none of the above | shown as low confidence |
+
+**Order matters:** named hosting providers are checked *before* organisation words, so "Hurricane Electric"
+(a backbone) isn't mistaken for a utility; organisation words are checked *before* generic network words,
+so "Bank X Network Services" is still a bank.
+
+**Finding:** Of ~25K human IPs, ~18K (73%) are hosting/VPN/proxy networks. Most of the traffic that slipped
+past the bot rules is still machine or anonymised traffic. Only ~1% of IPs are directly-identifiable
+organisations before RDAP. Organisations found directly include the IRS, JPMorgan Chase, Cisco, Bank of
+America, Blue Cross Blue Shield of MA, US Dept. of Veterans Affairs, Duke Energy, NIH, Worldpay and
+several banks, insurers, utilities and universities.
+
+## D-011 · eGain's own traffic
+**Finding:** The two highest-intent "ISP" visitors (140.89.x.x on Comcast) are in a block RDAP shows
+registered to **EGAIN**. These are eGain employees and are excluded. Without this check, eGain's own
+staff would have been the #1 "hot account" in the demo.
+
+## D-012 · Secure web gateways are an enterprise signal, not noise
+**Finding:** ~585 human IPs belong to Zscaler/Netskope. Large enterprises route employee browsing through
+these, so the visitor is very likely a corporate user, but the gateway hides which company. The app
+reports them as an aggregate ("enterprise visitors behind a security gateway") rather than throwing them
+away. A commercial identity provider could often resolve these.
+
+## D-013 · Proxy farms hiding behind company names
+**Finding:** The first RDAP pass "named" companies like *Blazing SEO*, *Biterika Group*, *Big Sky Services*
+and *OsoLabs*. These are residential-proxy and VPN resellers that rent IP blocks from ISPs and register
+them in their own name. Their IPs each loaded one page and left.
+**Decision:** An RDAP registrant only becomes an account if:
+1. its own name doesn't classify as hosting / ISP / security vendor (same rules as D-010, plus a short
+   list of proxy resellers seen in this log), and
+2. it doesn't *behave* like a proxy farm: **5+ visitor IPs averaging ≤1.1 pages per visit** is relabelled
+   hosting. Real companies have few IPs (one office NAT) and browse several pages.
+**Why:** Without this, the top "accounts" by IP count were all proxy providers, which would discredit the
+whole list in front of a rep. The behavioural rule catches farms that aren't on any list yet.
