@@ -97,7 +97,7 @@ def assigned_customer(summary: dict, as_name: str) -> str:
     # registry handles / maintainer objects ("CC04", "KabelBW-MNT", "GDC-TR-CoreIP") are not company names
     if " " not in reg and (re.search(r"[-_0-9]", reg) or reg.isupper()):
         return ""
-    if re.search(r"-mnt\b|maintainer|\bnoc\b|abuse", reg, re.I):
+    if re.search(r"-mnt\b|maintainer|\bnoc\b|abuse|\bpool\b|\brsvd\b|reserved|\d{6,}| - [A-Z0-9]+$", reg, re.I):
         return ""
     return reg
 

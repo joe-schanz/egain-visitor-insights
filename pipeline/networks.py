@@ -19,7 +19,7 @@ import re
 
 EGAIN = r"\begain\b|egain\.com"
 
-SECURITY_PROXY = r"zscaler|netskope|forcepoint|opendns|cisco umbrella|palo alto|iboss|mcafee|menlo security|cato networks|proofpoint|mimecast"
+SECURITY_PROXY = r"zscaler|netskope|forcepoint|opendns|cisco umbrella|palo alto|iboss|mcafee|hornetsecurity|menlo security|cato networks|proofpoint|mimecast"
 
 # Named providers: checked BEFORE the organisation rule (e.g. "Hurricane Electric" is a backbone,
 # not a utility).
@@ -44,6 +44,8 @@ HOSTING_NAMED = (
     r"blazing seo|biterika|big sky services|osolabs|hop bilisim|direct impression|segna tech|inet ltd|"
     r"ipnetzone|windscribe|power nms|pitline|lowping|primeworld digital|global telemanagement|we data|"
     r"terraserv|hosted backbone|halo colocation|"
+    # internet-wide scanners, crawlers, IP brokers and small hosts found as RDAP registrants
+    r"censys|qwant|hoplite|ipv4\.global|logicweb|websoft|techoff|ipmen|gtt americas|infonet services|"
     # transit backbones (traffic from these is infrastructure, not an end customer)
     r"cogent|gtt\.net|zayo|tata comm|telia carrier|arelion|ntt america|allstream"
 )
@@ -61,7 +63,7 @@ ISP = (
     r"sk broad|superonline|netia|plusnet|1und1|versatel|play\.pl|converge|leaptel|bevcomm|multi\.net|"
     r"videotron|sunrise|cellcom|tm\.com\.my|tdc|eir\.ie|dna\.fi|bahnhof|ewe|drei\.at|teracom|netcom-bw|"
     r"bluwifi|samruddhi|wave broadband|cable onda|sky uk|deutsche telekom|wow!|frontiernet|bell canada|"
-    r"belwue|dfn\.de|jisc|aveniq|xenox|intercom online|amx argentina|vmedia|special communication|transit as|ecuanet|tt dotcom|metronet|teljet"
+    r"belwue|dfn\.de|jisc|aveniq|xenox|intercom online|amx argentina|vmedia|special communication|transit as|ecuanet|tt dotcom|metronet|teljet|fastmetrics|comunicaciones|wow tel|sercom|ankhnet|creative bangladesh"
 )
 
 # Strong signals that an AS / registry name is an end-user organisation, not a network provider.

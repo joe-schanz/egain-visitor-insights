@@ -173,3 +173,25 @@ them in their own name. Their IPs each loaded one page and left.
    hosting. Real companies have few IPs (one office NAT) and browse several pages.
 **Why:** Without this, the top "accounts" by IP count were all proxy providers, which would discredit the
 whole list in front of a rep. The behavioural rule catches farms that aren't on any list yet.
+
+## D-014 · Firmographics from Wikidata, precision first
+**Decision:** Industry, headcount, revenue and HQ come from **Wikidata** (free, open, CC0), through a handful of
+batched SPARQL queries (`pipeline/04_enrich.py`). Matching, strongest first:
+1. **Website match:** the network's domain (e.g. `duke-energy.com`) equals the organisation's official website
+   on Wikidata. 106 accounts.
+2. **Exact name match:** the cleaned registry name (legal suffixes removed) is exactly an English label or alias of an
+   organisation-like item, *and* the countries agree (or the item is described as multinational). 29 accounts.
+   The country check rejected *CSL Limited* (HK) → "Chinese Super League", *M1 Limited* (SG) → an Istanbul metro
+   line, *ICT* (Nauru gov) → "Islamabad Capital Territory".
+3. No match: blank firmographics, never a guess.
+
+Every account also gets an **eGain sector** (Financial Services, Insurance, Healthcare, Government, Utilities, …)
+from readable keyword rules over the name, domain and Wikidata industry. 205 of 234 accounts get a sector.
+
+**Rejected:** Wikidata's search API (rate-limited after ~100 calls; batched SPARQL needs ~15 requests);
+fuzzy name matching (too many confident-looking wrong companies); Clearbit/ZoomInfo/Apollo (paid; they plug in
+here and would fill the 181 "size unknown" accounts).
+**Why:** A rep who sees one obviously wrong company stops trusting the whole list. Blank beats wrong.
+**Also tightened:** registry names that are pool or reserved labels, or contain long digit strings
+("PPPoX Pool - Rback9", "BMF VoN OAM - RSVD"), and scanners/crawlers (Censys, Qwant, Hornetsecurity) are no
+longer accounts.
