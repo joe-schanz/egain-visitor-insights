@@ -304,9 +304,9 @@ def main() -> None:
             "description": f["description"], "wikidata_id": f["wikidata_id"],
             "wiki_industries": list(f["industries"]),
             "id_source": f["id_source"],
-            "id_evidence": ("The visitor's IP network is registered to this organisation"
+            "id_evidence": ("The visitor's IP network is registered to this organization"
                             if f["id_source"] == "ip_owner" else
-                            "The internet provider registered this IP block to this organisation (RDAP)"),
+                            "The internet provider registered this IP block to this organization (RDAP)"),
             "network_owner": idrows["as_name"].mode().iat[0] if len(idrows) else "",
             "countries": sorted(idrows["country"].dropna().unique().tolist()),
             "ips": len(ips), "visitors": int(g["visitor"].nunique()), "visits": int(g["session_id"].nunique()),
@@ -354,7 +354,7 @@ def main() -> None:
         "ip_masked": re.sub(r"\.\d+$", ".x", r.ip) if "." in r.ip else r.ip.rsplit(":", 2)[0] + ":…",
         "points": int(r.points), "visits": int(r.visits), "pages": int(r.pages),
         "first_seen": r.first.isoformat(), "last_seen": r.last.isoformat(),
-        "network_type": {"isp": "Internet provider", "unverified": "Unrecognised network",
+        "network_type": {"isp": "Internet provider", "unverified": "Unrecognized network",
                          "security_proxy": "Enterprise security gateway"}[r.net_type],
         "network": r.network or "", "country": r.country or "",
         "categories": r.categories, "integrations": r.integrations, "products": r.products,
@@ -402,7 +402,7 @@ def main() -> None:
             {"label": "Human visitors (IPs)", "value": report["human_ips"]},
             {"label": "On identifiable networks", "value": int(hip["net_type"].isin(
                 ["organization", "isp", "unverified", "security_proxy"]).sum())},
-            {"label": "Identified organisations", "value": len(accounts)},
+            {"label": "Identified organizations", "value": len(accounts)},
         ],
         "traffic_classes": report["hits_by_class"],
         "network_types": {k: int(v) for k, v in hip["net_type"].value_counts().items()},

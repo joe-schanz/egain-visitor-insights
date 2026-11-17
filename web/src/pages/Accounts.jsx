@@ -67,7 +67,7 @@ export default function Accounts() {
         <div>
           <h1>Accounts researching eGain</h1>
           <p>
-            Organisations identified from eGain.com visits, scored on fit, intent and engagement. Click any account for
+            Organizations identified from eGain.com visits, scored on fit, intent and engagement. Click any account for
             its dossier: what they read, likely tech stack, and talking points.
           </p>
         </div>

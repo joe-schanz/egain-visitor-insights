@@ -67,7 +67,7 @@ signalling evaluation. Investor/careers traffic is real but not buyer traffic.
 **Rejected:** Off-the-shelf bot lists only (would have missed the two largest classes); ML anomaly
 detection (no labels, unexplainable).
 **Why:** The biggest bot populations disguise themselves as normal Chrome. They were caught by
-*behaviour*, not by name:
+*behavior*, not by name:
 - **Distributed bot:** 113K visits from 50,652 IPs, all with Chrome 124 on Windows, 99.99% one-page
   homepage hits. Chrome auto-updates; by Feb 2025 real users were on 131–133. No human population
   looks like this.
@@ -106,12 +106,12 @@ splitting by user agent reduces that.
   in the identification step using the IP owner's network type (D-010).
 - **eGain's own employees** are flagged in identification (D-011).
 
-## D-009 · IP → organisation: two free sources, cheapest first
+## D-009 · IP → organization: two free sources, cheapest first
 **Decision:**
 1. **IPinfo Lite database**, downloaded once (27 MB, free, unlimited) and queried locally. Gives the network
    owner (ASN name + domain) and country for every IP in milliseconds, no API limits.
 2. **RDAP** (the modern WHOIS, run by the regional internet registries, free) for human visitors on ISP or
-   unrecognised networks, highest intent first. ISPs often register which *customer* a block belongs to,
+   unrecognized networks, highest intent first. ISPs often register which *customer* a block belongs to,
    e.g. a Verizon Business block registered to *GuideStone Financial Resources*, or an AT&T block to
    *Alberici Group*.
 
@@ -137,17 +137,17 @@ identity graphs fill.
 | egain | eGain's own offices/VPN | excluded (employees) |
 | security_proxy | Zscaler, Netskope, Proofpoint … | counted as "enterprise user, company hidden" |
 | hosting | cloud, datacenter, VPN, proxy farms, backbones | excluded from accounts (automation/anonymised) |
-| organization | the IP block belongs to a named organisation | **becomes an account** |
+| organization | the IP block belongs to a named organization | **becomes an account** |
 | isp | consumer/business internet provider | account only if RDAP names a customer |
 | unverified | none of the above | shown as low confidence |
 
-**Order matters:** named hosting providers are checked *before* organisation words, so "Hurricane Electric"
-(a backbone) isn't mistaken for a utility; organisation words are checked *before* generic network words,
+**Order matters:** named hosting providers are checked *before* organization words, so "Hurricane Electric"
+(a backbone) isn't mistaken for a utility; organization words are checked *before* generic network words,
 so "Bank X Network Services" is still a bank.
 
 **Finding:** Of ~25K human IPs, ~18K (73%) are hosting/VPN/proxy networks. Most of the traffic that slipped
 past the bot rules is still machine or anonymised traffic. Only ~1% of IPs are directly-identifiable
-organisations before RDAP. Organisations found directly include the IRS, JPMorgan Chase, Cisco, Bank of
+organizations before RDAP. Organizations found directly include the IRS, JPMorgan Chase, Cisco, Bank of
 America, Blue Cross Blue Shield of MA, US Dept. of Veterans Affairs, Duke Energy, NIH, Worldpay and
 several banks, insurers, utilities and universities.
 
@@ -172,15 +172,15 @@ them in their own name. Their IPs each loaded one page and left.
 2. it doesn't *behave* like a proxy farm: **5+ visitor IPs averaging ≤1.1 pages per visit** is relabelled
    hosting. Real companies have few IPs (one office NAT) and browse several pages.
 **Why:** Without this, the top "accounts" by IP count were all proxy providers, which would discredit the
-whole list in front of a rep. The behavioural rule catches farms that aren't on any list yet.
+whole list in front of a rep. The behavioral rule catches farms that aren't on any list yet.
 
 ## D-014 · Firmographics from Wikidata, precision first
 **Decision:** Industry, headcount, revenue and HQ come from **Wikidata** (free, open, CC0), through a handful of
 batched SPARQL queries (`pipeline/04_enrich.py`). Matching, strongest first:
-1. **Website match:** the network's domain (e.g. `duke-energy.com`) equals the organisation's official website
+1. **Website match:** the network's domain (e.g. `duke-energy.com`) equals the organization's official website
    on Wikidata. 106 accounts.
 2. **Exact name match:** the cleaned registry name (legal suffixes removed) is exactly an English label or alias of an
-   organisation-like item, *and* the countries agree (or the item is described as multinational). 29 accounts.
+   organization-like item, *and* the countries agree (or the item is described as multinational). 29 accounts.
    The country check rejected *CSL Limited* (HK) → "Chinese Super League", *M1 Limited* (SG) → an Istanbul metro
    line, *ICT* (Nauru gov) → "Islamabad Capital Territory".
 3. No match: blank firmographics, never a guess.
@@ -214,7 +214,7 @@ to trust *why* an account is hot. In production, these weights would be tuned ag
 stack from integration pages, product interest, industry story, buying-group size, linked CRM contacts, a
 sector talk track) and a next action tied to the tier.
 
-**Also:** two web domains belonging to one organisation (jpmchase.com, jpmorgan.com) merge into one account
+**Also:** two web domains belonging to one organization (jpmchase.com, jpmorgan.com) merge into one account
 through the shared Wikidata ID.
 
 ## D-016 · The web app

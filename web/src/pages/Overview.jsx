@@ -10,8 +10,8 @@ const CLASS_LABEL = {
 };
 const NET_LABEL = {
   hosting: "Cloud, VPN & proxy networks", isp: "Internet providers (unidentified)",
-  unverified: "Unrecognised networks", security_proxy: "Enterprise security gateways",
-  organization: "Identified organisations", egain: "eGain's own offices",
+  unverified: "Unrecognized networks", security_proxy: "Enterprise security gateways",
+  organization: "Identified organizations", egain: "eGain's own offices",
 };
 const SERIES = [["human", "Humans", "var(--series-1)"], ["email_scanner", "Email scanners", "var(--series-2)"], ["bot", "Other bots", "var(--series-3)"]];
 

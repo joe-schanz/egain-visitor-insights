@@ -188,7 +188,7 @@ def main() -> None:
     })
     df = df.merge(ua_map, on="user_agent", how="left")
 
-    # ---- per-IP behaviour ----
+    # ---- per-IP behavior ----
     has_uid = df["uid"] != ""
     uids_per_ip = df[has_uid].groupby("ip")["uid"].nunique()
     gateway_ips = set(uids_per_ip[uids_per_ip >= GATEWAY_MIN_UIDS].index)
@@ -224,7 +224,7 @@ def main() -> None:
     df["traffic_class"] = np.select(conds, labels, default="human")
     # a gateway IP's *non*-campaign hits are judged on their own merits (it may be a corporate NAT)
 
-    # ---- pass 2: session-level behaviour of what is still "human" ----
+    # ---- pass 2: session-level behavior of what is still "human" ----
     df["session_id"] = assign_sessions(df)
     hum = df[df["session_id"].notna()].sort_values(["session_id", "ts"]).copy()
     hum["gap"] = hum.groupby("session_id")["ts"].diff().dt.total_seconds()

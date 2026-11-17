@@ -1,9 +1,9 @@
-"""Step 3 — Identify the organisation behind each IP.
+"""Step 3 — Identify the organization behind each IP.
 
 Two free sources, cheapest first:
   1. IPinfo Lite database (local .mmdb, free, unlimited): who owns the IP's network (ASN) for EVERY IP.
-     If the network owner is the visitor's own organisation (JPMorgan, IRS, a university ...) we are done.
-  2. RDAP (the modern WHOIS, free, rate-limited): for IPs on ISP / unrecognised networks, the regional
+     If the network owner is the visitor's own organization (JPMorgan, IRS, a university ...) we are done.
+  2. RDAP (the modern WHOIS, free, rate-limited): for IPs on ISP / unrecognized networks, the regional
      registry often records which *customer* an ISP assigned the block to
      (e.g. a Verizon Business block registered to "GuideStone Financial Resources").
      Results are cached on disk, and one lookup covers every IP inside the returned range.
@@ -70,7 +70,7 @@ def _vcard_fn(entity: dict) -> str:
 
 
 def rdap_summary(d: dict) -> dict:
-    """Keep only what we need: block range, network name, and the registrant organisation."""
+    """Keep only what we need: block range, network name, and the registrant organization."""
     if not d:
         return {}
     registrant = ""
@@ -86,7 +86,7 @@ def rdap_summary(d: dict) -> dict:
 
 
 def assigned_customer(summary: dict, as_name: str) -> str:
-    """Return the customer organisation an ISP block is assigned to, or '' if it's the ISP itself."""
+    """Return the customer organization an ISP block is assigned to, or '' if it's the ISP itself."""
     reg = (summary.get("registrant") or "").strip()
     if not reg or PROVIDER_WORDS.search(reg):
         return ""
@@ -171,7 +171,7 @@ def main() -> None:
     ident.loc[org, "company_domain"] = ident.loc[org, "as_domain"]
     ident.loc[org, "id_source"] = "ip_owner"
 
-    # 2) RDAP for human visitors on ISP / unrecognised networks, highest-intent first
+    # 2) RDAP for human visitors on ISP / unrecognized networks, highest-intent first
     human = hits[hits["traffic_class"].eq("human") & ~hits["category"].isin(NOISE)]
     intent = human.groupby("ip")["intent_weight"].sum()
     cand = ident[ident["ip"].isin(intent.index) & ident["net_type"].isin(["isp", "unverified"])].copy()
@@ -225,13 +225,13 @@ def main() -> None:
             continue
         ident.loc[m, ["net_type", "company_name", "id_source"]] = ["organization", cust, "rdap"]
 
-    # behavioural check: proxy farms registered under an innocuous company name
+    # behavioral check: proxy farms registered under an innocuous company name
     hv = (human.groupby("ip").agg(hits=("session_id", "size"), visits=("session_id", "nunique")))
     named = ident[ident["id_source"].eq("rdap") & ident["company_name"].ne("")].join(hv, on="ip")
     per = named.groupby("company_name").agg(ips=("ip", "size"), hits=("hits", "sum"), visits=("visits", "sum"))
     farms = per[(per["ips"] >= FARM_MIN_IPS) & (per["hits"] / per["visits"] <= FARM_MAX_HITS_PER_VISIT)].index
     if len(farms):
-        print("proxy farms (behavioural):", ", ".join(farms))
+        print("proxy farms (behavioral):", ", ".join(farms))
         f = ident["company_name"].isin(farms) & ident["id_source"].eq("rdap")
         ident.loc[f, ["net_type", "company_name"]] = ["hosting", ""]
 

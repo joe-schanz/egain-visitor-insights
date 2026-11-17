@@ -1,10 +1,10 @@
-"""Step 4 — Firmographics: industry, size, revenue, HQ for every identified organisation.
+"""Step 4 — Firmographics: industry, size, revenue, HQ for every identified organization.
 
 Source: Wikidata (free, open, CC0). Matching is precision-first, because a wrong company is worse
 than a blank one in front of a rep:
-  1. Website match: the organisation's domain equals the official website (P856) on a Wikidata item.
+  1. Website match: the organization's domain equals the official website (P856) on a Wikidata item.
   2. Name match: an item whose English label or alias is exactly the cleaned name AND that looks like an
-     organisation (has an industry, headcount, website, revenue or HQ). Ties go to the best-known item
+     organization (has an industry, headcount, website, revenue or HQ). Ties go to the best-known item
      (most Wikipedia language editions).
 Everything is batched SPARQL against the Wikidata Query Service (a handful of requests in total).
 Anything unmatched still gets a sector from transparent keyword rules on its name/domain.
@@ -144,7 +144,7 @@ def match_by_website(domains: list[str]) -> dict[str, str]:
 
 
 def match_by_label(names: list[str]) -> dict[str, str]:
-    """cleaned name -> QID via exact English label/alias, organisation-like items only."""
+    """cleaned name -> QID via exact English label/alias, organization-like items only."""
     out: dict[str, str] = {}
     for i in range(0, len(names), 30):
         chunk = names[i:i + 30]
@@ -233,7 +233,7 @@ def main() -> None:
         CACHE.write_text(json.dumps(cache))
 
     # a name-only match must agree on country (CSL Limited in Hong Kong is not the Chinese Super League),
-    # unless Wikidata describes the organisation as multinational
+    # unless Wikidata describes the organization as multinational
     def country_ok(a) -> bool:
         d = cache["details"].get(a.qid, {})
         c = COUNTRY_NAME.get(a.ip_country, a.ip_country)
@@ -254,7 +254,7 @@ def main() -> None:
             "account_key": a.account_key, "name": name, "raw_name": a.raw_name, "domain": a.domain,
             "id_source": a.id_source, "wikidata_id": a.qid, "wikidata_match": a.match,
             "description": d.get("desc", ""), "industries": d.get("industries", []),
-            # the organisation's own name/domain decides first (Cisco is tech, even if Wikidata says telecom)
+            # the organization's own name/domain decides first (Cisco is tech, even if Wikidata says telecom)
             "sector": next((s for s, rx in _SECTOR_RX if rx.search(f"{a.raw_name} {name} {a.domain}")),
                            next((s for s, rx in _SECTOR_RX if rx.search(blob)), "Other")),
             "employees": employees,
@@ -267,7 +267,7 @@ def main() -> None:
                           "SMB (<200)" if employees else "Unknown"),
         })
     out = pd.DataFrame(rows)
-    # one account per real-world organisation: jpmchase.com and jpmorgan.com are both JPMorgan Chase
+    # one account per real-world organization: jpmchase.com and jpmorgan.com are both JPMorgan Chase
     canon = dict(zip(out["account_key"], np.where(out["wikidata_id"].ne(""), "wd:" + out["wikidata_id"],
                                                   out["account_key"])))
     out["account_key"] = out["account_key"].map(canon)

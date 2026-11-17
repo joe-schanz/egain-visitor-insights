@@ -7,7 +7,7 @@ net_type values
   hosting         cloud / datacenter / VPN / proxy farm: almost always automation or anonymised
   isp             consumer or small-business internet provider: company unknown unless the
                   registry (RDAP) shows the block is assigned to a named customer
-  organization    the IP block is owned by a named organisation (bank, insurer, agency, university ...)
+  organization    the IP block is owned by a named organization (bank, insurer, agency, university ...)
   unverified      not matched by any rule above (shown with low confidence)
 
 Rules are plain regex lists so each verdict can be explained. Patterns are matched against
@@ -21,7 +21,7 @@ EGAIN = r"\begain\b|egain\.com"
 
 SECURITY_PROXY = r"zscaler|netskope|forcepoint|opendns|cisco umbrella|palo alto|iboss|mcafee|hornetsecurity|menlo security|cato networks|proofpoint|mimecast"
 
-# Named providers: checked BEFORE the organisation rule (e.g. "Hurricane Electric" is a backbone,
+# Named providers: checked BEFORE the organization rule (e.g. "Hurricane Electric" is a backbone,
 # not a utility).
 HOSTING_NAMED = (
     # hyperscalers & CDNs & crawler operators
@@ -66,7 +66,7 @@ ISP = (
     r"csl limited|belwue|dfn\.de|jisc|aveniq|xenox|intercom online|amx argentina|vmedia|special communication|transit as|ecuanet|tt dotcom|metronet|teljet|fastmetrics|comunicaciones|wow tel|sercom|ankhnet|creative bangladesh"
 )
 
-# Strong signals that an AS / registry name is an end-user organisation, not a network provider.
+# Strong signals that an AS / registry name is an end-user organization, not a network provider.
 ORGANIZATION = (
     r"\bbank|bancorp|banco|banca|bankasi|\binsurance|assurance|financial|credit union|securities|\bcapital\b|"
     r"health|hospital|medical|clinic|pharma|blue cross|blue shield|kaiser|"
@@ -93,7 +93,7 @@ def classify_asn(as_name: str, as_domain: str) -> str:
     if not s.strip():
         return "unverified"
     # order matters: our own offices, security proxies, named hosting/backbone providers,
-    # then organisation names (so "Bank X Network" still counts), then generic hosting words, then ISPs.
+    # then organization names (so "Bank X Network" still counts), then generic hosting words, then ISPs.
     for label in ["egain", "security_proxy", "hosting_named", "organization", "hosting_generic", "isp"]:
         if _RX[label].search(s):
             return label.replace("_named", "").replace("_generic", "")

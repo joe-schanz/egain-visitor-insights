@@ -49,7 +49,7 @@ export default function Visitors() {
                  onChange={(e) => set("q", e.target.value)} aria-label="Search visitors" />
           <select value={type} onChange={(e) => set("type", e.target.value)} aria-label="Network type">
             <option value="">All network types</option>
-            {["Internet provider", "Enterprise security gateway", "Unrecognised network"].map((t) => <option key={t}>{t}</option>)}
+            {["Internet provider", "Enterprise security gateway", "Unrecognized network"].map((t) => <option key={t}>{t}</option>)}
           </select>
           <select value={country} onChange={(e) => set("country", e.target.value)} aria-label="Country">
             <option value="">All countries</option>
