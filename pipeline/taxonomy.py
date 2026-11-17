@@ -26,11 +26,12 @@ CATEGORY_RULES: list[tuple[str, int, str]] = [
     # --- existing relationships: useful context, not new-logo intent ---
     ("partner",      2, r"^/(partners|partner-|econet)"),
     ("customer",     2, r"^/(egain-support|dev-central|support|customer-|community|login)"),
+    # press releases mention partners/products/"pilot programs" but are company news, not evaluation;
+    # checked before conversion so a release about a pilot program is not read as a trial request
+    ("news",         1, r"^/company/news|press[-_]release"),
     # --- high intent: hand-raisers ---
     ("conversion",  10, r"(contact-us|request-demo|forms-request|risk-free|free-trial|pricing|get-started|talk-to|^/try-|"
                         r"pilot)"),
-    # press releases mention partners/products but are company news, not evaluation
-    ("news",         1, r"^/company/news|press[-_]release"),
     ("webinar",      4, r"^/company/events|webinar"),
     # --- evaluation: product / integration / proof ---
     ("integration",  7, r"(egain-for-|egain-solve-for-|for-amazon-connect|genesys|five9|talkdesk|servicenow|salesforce|"

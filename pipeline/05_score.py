@@ -40,6 +40,8 @@ INTENT_POINTS = [("conversion", 20, "Viewed a conversion page (demo, contact, pr
                  ("education|topic_content|customer|partner", 2, "Read educational content")]
 
 NON_TARGET = {"Education", "Other"}
+# Registry names cut off at 60 characters, fixed by hand (raw name is still shown in the dossier)
+NAME_FIX = {"Guidestone Financial Resources of the Southern Baptist Conve": "GuideStone Financial Resources"}
 
 COMPETITORS = re.compile(r"incontact|\bnice\b|genesys|five9|verint|zendesk|talkdesk|freshworks|kore\.ai|"
                          r"liveperson|8x8|avaya|ujet|sprinklr|servicenow|salesforce", re.I)
@@ -61,9 +63,22 @@ TALK_TRACK = {
 }
 
 
+PAGE_TITLES = {"forms-request-demo": "the demo request form", "contact-us": "the Contact Us page",
+               "risk-free-trial-customer-engagement-software": "the free trial page",
+               "knowledge-management-software-pilot-risk-free": "the risk-free pilot page",
+               "try-chatgpt-for-cx": "the ChatGPT for CX trial"}
+
+
+def page_phrase(path: str) -> str:
+    """Conversion pages as they read in a sentence ("viewed the demo request form")."""
+    slug = ([p for p in path.split("?")[0].split("/") if p] or [""])[-1]
+    return PAGE_TITLES.get(slug, title_from_path(path))
+
+
 def title_from_path(path: str) -> str:
     if path in ("/", ""):
         return "Home"
+    slug = [p for p in path.split("?")[0].split("/") if p][-1]
     slug = [p for p in path.split("?")[0].split("/") if p][-1]
     return re.sub(r"[-_]+", " ", slug).strip().capitalize()[:80]
 
@@ -133,7 +148,7 @@ def brief(a: dict) -> dict:
                 f"and viewed {a['unique_pages']} page{'s' if a['unique_pages'] != 1 else ''} {period}.")
     points = []
     if a["conversion_pages"]:
-        points.append(f"Hand-raiser: viewed {join_list([title_from_path(p) for p in a['conversion_pages'][:3]])}. "
+        points.append(f"Hand-raiser: viewed {join_list(list(dict.fromkeys(page_phrase(p) for p in a['conversion_pages'][:3])))}. "
                       f"Active evaluation; follow up within 24 hours.")
     if a["integrations"]:
         names = [k for k, _ in a["integrations"][:3]]
@@ -163,7 +178,26 @@ def brief(a: dict) -> dict:
         action = "Monitor: nurture by marketing until intent increases."
     if a["flags"]:
         action = "Review before outreach: " + "; ".join(a["flags"]).lower() + "."
-    return {"headline": headline, "talking_points": points, "next_action": action}
+    # short form for the accounts table: what to do, and the single strongest reason why
+    if a["flags"]:
+        step = "Review first"
+    else:
+        step = {"Hot": "Call this week", "Warm": "Add to sequence"}.get(a["tier"], "Nurture")
+    if a["conversion_pages"]:
+        why = f"viewed {page_phrase(a['conversion_pages'][0])}"
+        why = why[0].upper() + why[1:]
+    elif a["marketplace_refs"]:
+        why = f"Came from the {a['marketplace_refs'][0][1]} marketplace"
+    elif a["integrations"]:
+        why = f"Researching the {a['integrations'][0][0]} integration"
+    elif a["visitors"] >= 3:
+        why = f"{a['visitors']} people visiting"
+    elif a["products"]:
+        why = f"Interested in {a['products'][0][0]}"
+    else:
+        why = f"{a['visits']} visit{'s' if a['visits'] != 1 else ''}, {a['unique_pages']} pages"
+    return {"headline": headline, "talking_points": points, "next_action": action,
+            "next_step": step, "next_why": why}
 
 
 # ---------------- main ----------------
@@ -188,6 +222,20 @@ def main() -> None:
     ip_to_acct = dict(zip(ip_acct["ip"], ip_acct["account_key"]))
     real_contacts["account_key"] = real_contacts["human_ips"].map(
         lambda ips: next((ip_to_acct[i] for i in ips if i in ip_to_acct), ""))
+    # readable alias until CRM names are joined in: "Cisco contact 1", or "EMEA contact 0042" when the
+    # click came from an unidentified network. Numbered by first click; the CRM ID stays alongside.
+    real_contacts = real_contacts.sort_values("first_seen")
+    seq, aliases = {}, []
+    for k, region in zip(real_contacts["account_key"], real_contacts["region"]):
+        if k:
+            base = NAME_FIX.get(firmo.at[k, "name"], firmo.at[k, "name"])
+            seq[base] = seq.get(base, 0) + 1
+            aliases.append(f"{base} contact {seq[base]}")
+        else:
+            base = region or "Unknown region"
+            seq[base] = seq.get(base, 0) + 1
+            aliases.append(f"{base} contact {seq[base]:04d}")
+    real_contacts["alias"] = aliases
 
     accounts = []
     for key, g in human[human["account_key"].notna()].groupby("account_key"):
@@ -212,12 +260,26 @@ def main() -> None:
         if cat_counts.get("investor", 0) / n > 0.5:
             flags.append("Mostly investor-relations pages: likely analysts or investors")
 
+        # Person 1 = most recent visitor, so the timeline's top row is always Person 1
+        last_by_person = g.groupby("visitor")["ts"].max().sort_values(ascending=False)
+        pnum = {v: i + 1 for i, v in enumerate(last_by_person.index)}
+        people = []
+        for v, pg in g.groupby("visitor"):
+            sids = pg["session_id"].unique()
+            people.append({
+                "person": pnum[v], "visits": len(sids), "pages": int(pg["path"].nunique()), "page_views": len(pg),
+                "first": pg["ts"].min().isoformat(), "last": pg["ts"].max().isoformat(),
+                "device": sess.at[sids[0], "device"], "browser": sess.at[sids[0], "browser"],
+                "conversion": bool(pg["category"].eq("conversion").any()),
+            })
+        people.sort(key=lambda x: x["person"])
+
         visits = []
         for sid, vg in g.sort_values("ts").groupby("session_id", sort=False):
             s = sess.loc[sid]
             visits.append({
                 "start": s["start"].isoformat(), "duration_sec": int(s["duration_sec"]),
-                "visitor": sorted(g["visitor"].unique()).index(vg["visitor"].iat[0]) + 1,
+                "visitor": pnum[vg["visitor"].iat[0]],
                 "device": s["device"], "browser": s["browser"],
                 "source": s["ref_class"], "source_host": s["ref_host"] or "",
                 "campaign": s["utm_campaign"] or "",
@@ -225,11 +287,16 @@ def main() -> None:
                           for t, p, c in vg[["ts", "path", "category"]].head(40).itertuples(index=False)],
             })
         visits.sort(key=lambda v: v["start"], reverse=True)
+        per_person, visit_log = {}, []
+        for v in visits:                              # latest 10 visits per person, 80 per account
+            if per_person.get(v["visitor"], 0) < 10 and len(visit_log) < 80:
+                visit_log.append(v)
+                per_person[v["visitor"]] = per_person.get(v["visitor"], 0) + 1
 
         ips = sorted(g["ip"].unique())
         idrows = ident[ident["ip"].isin(ips)]
         a = {
-            "key": key, "name": f["name"], "raw_name": f["raw_name"], "domain": f["domain"],
+            "key": key, "name": NAME_FIX.get(f["name"], f["name"]), "raw_name": f["raw_name"], "domain": f["domain"],
             "sector": f["sector"], "size_band": f["size_band"],
             "employees": int(f["employees"]) if pd.notna(f["employees"]) else None,
             "revenue": float(f["revenue"]) if pd.notna(f["revenue"]) else None,
@@ -257,9 +324,11 @@ def main() -> None:
             "search_terms_hint": sorted(sess.loc[g["session_id"].unique(), "ref_host"].dropna().unique().tolist())[:5],
             "marketplace_refs": sorted({(h, p) for h in sess.loc[g["session_id"].unique(), "ref_host"].dropna()
                                         for m, p in MARKETPLACES.items() if h and h.endswith(m)}),
-            "contacts": real_contacts.loc[real_contacts["account_key"].eq(key), "uid"].tolist(),
+            "contacts": [{"uid": r.uid, "alias": r.alias, "status": r.status} for r in
+                         real_contacts[real_contacts["account_key"].eq(key)].itertuples(index=False)],
             "flags": flags, "noise_only": noise_only,
-            "visit_log": visits[:50],
+            "people": people,
+            "visit_log": visit_log,
         }
         a.update(score_account(a))
         a.update(brief(a))
@@ -301,7 +370,7 @@ def main() -> None:
         first_ip = c.human_ips[0] if len(c.human_ips) else ""
         idr = ident[ident["ip"].eq(first_ip)]
         out_contacts.append({
-            "uid": c.uid, "status": c.status, "campaigns": list(c.campaigns), "region": c.region or "",
+            "uid": c.uid, "alias": c.alias, "status": c.status, "campaigns": list(c.campaigns), "region": c.region or "",
             "first_click": c.first_seen.isoformat(), "human_clicks": int(c.clicks_human),
             "scanner_clicks": int(c.clicks_scanner),
             "pages": [title_from_path(p) for p in dict.fromkeys(pages)][:15],

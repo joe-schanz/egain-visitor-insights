@@ -59,6 +59,7 @@ export default function Accounts() {
   const hot = accounts.filter((a) => a.tier === "Hot").length;
   const warm = accounts.filter((a) => a.tier === "Warm").length;
   const anyFilter = [...params.keys()].length > 0;
+  const callList = accounts.filter((a) => a.tier === "Hot" && !a.flags.length);
 
   return (
     <>
@@ -71,6 +72,28 @@ export default function Accounts() {
           </p>
         </div>
       </div>
+
+      <section className="callweek" aria-labelledby="callweek-title">
+        <div className="callweek-head">
+          <h2 id="callweek-title">Call this week</h2>
+          <span className="small muted">{callList.length} hot accounts, highest score first. Each card opens the full dossier.</span>
+        </div>
+        <div className="callweek-grid">
+          {callList.map((a) => (
+            <Link key={a.key} className="callcard" to={`/account/${encodeURIComponent(a.key)}`}>
+              <div className="callcard-top">
+                <span className="callcard-name">{a.name}</span>
+                <span className="callcard-score tnum" title={`Score ${a.score} / 100`}>{a.score}</span>
+              </div>
+              <div className="small muted">{a.sector}</div>
+              <div className="callcard-why">{a.next_why}</div>
+              <div className="small faint">
+                {a.visitors} {a.visitors === 1 ? "person" : "people"} · {a.visits} visit{a.visits !== 1 ? "s" : ""} · last seen {fmtDate(a.last_seen)}
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       <div className="grid grid-4" style={{ marginBottom: 16 }}>
         <Kpi label="Identified accounts" value={fmt(accounts.length)} note="from 30,083 human visitor IPs" />
@@ -119,6 +142,7 @@ export default function Accounts() {
               <tr>
                 <SortTh k="score" label="Score" sort={sort} setSort={setSort} />
                 <SortTh k="name" label="Account" sort={sort} setSort={setSort} />
+                <th>Next step</th>
                 <th>Key signals</th>
                 <SortTh k="sector" label="Sector" sort={sort} setSort={setSort} />
                 <SortTh k="visitors" label="People" sort={sort} setSort={setSort} num />
@@ -143,6 +167,10 @@ export default function Accounts() {
                         .filter(Boolean).join(" · ")}
                     </div>
                     {a.flags.map((fl) => <span key={fl} className="pill flag" style={{ marginTop: 4 }}>⚑ {fl}</span>)}
+                  </td>
+                  <td style={{ minWidth: 180 }}>
+                    <div className={`next-step ${a.tier.toLowerCase()}${a.flags.length ? " flagged" : ""}`}>{a.next_step}</div>
+                    <div className="small muted">{a.next_why}</div>
                   </td>
                   <td>
                     <div className="chips">

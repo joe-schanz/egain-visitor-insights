@@ -47,7 +47,7 @@ export default function Contacts() {
     return contacts.filter((c) =>
       (status === "all" || c.status === status) &&
       (!campaign || c.campaigns.includes(campaign)) &&
-      (!s || [c.uid, c.region, c.network, c.country, acctName[c.account_key] || "", ...c.pages, ...c.campaigns]
+      (!s || [c.uid, c.alias, c.region, c.network, c.country, acctName[c.account_key] || "", ...c.pages, ...c.campaigns]
         .join(" ").toLowerCase().includes(s)));
   }, [contacts, q, status, campaign, acctName]);
 
@@ -98,9 +98,10 @@ export default function Contacts() {
         </div>
       </Card>
 
-      <Card title="Contacts to follow up" sub="Only contacts with a human click are listed. IDs match the CRM contact record.">
+      <Card title="Contacts to follow up"
+            sub="Only contacts with a human click are listed. Names are placeholders: an account name when the click came from an identified network, otherwise the campaign region. In production the CRM supplies the real name; the CRM ID underneath matches that record.">
         <div className="filters">
-          <input className="search" placeholder="Search contact ID, page, network, account…" value={q}
+          <input className="search" placeholder="Search contact, CRM ID, page, network, account…" value={q}
                  onChange={(e) => set("q", e.target.value)} aria-label="Search contacts" />
           <div className="seg" role="group" aria-label="Status">
             {[["engaged", "Engaged"], ["clicked", "Clicked"], ["all", "Both"]].map(([k, l]) => (
@@ -116,12 +117,12 @@ export default function Contacts() {
         <div className="table-wrap">
           <table>
             <thead>
-              <tr><th>Contact (CRM ID)</th><th>Status</th><th>Campaign</th><th>First click</th><th>Pages read</th><th>Network</th></tr>
+              <tr><th>Contact</th><th>Status</th><th>Campaign</th><th>First click</th><th>Pages read</th><th>Network</th></tr>
             </thead>
             <tbody>
               {rows.slice(0, limit).map((c) => (
                 <tr key={c.uid}>
-                  <td><code className="small">{c.uid}</code><div className="small faint">{c.region}</div></td>
+                  <td style={{ whiteSpace: "nowrap" }}><b>{c.alias}</b><div><code className="small faint">{c.uid}</code></div></td>
                   <td>{c.status === "engaged" ? <span className="pill good">✓ Engaged</span> : <span className="pill cold">Clicked</span>}</td>
                   <td className="small">{c.campaigns.join(", ")}</td>
                   <td className="small muted tnum" style={{ whiteSpace: "nowrap" }}>{fmtDate(c.first_click, true)}</td>

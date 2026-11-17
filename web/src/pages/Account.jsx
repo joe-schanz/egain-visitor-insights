@@ -28,28 +28,47 @@ function Breakdown({ parts }) {
   );
 }
 
-function Visit({ v, open, onToggle }) {
+function VisitPages({ v }) {
+  return (
+    <div className="pvisit">
+      <div className="pvisit-head">
+        <b className="tnum">{fmtDate(v.start, true)}</b>
+        <span className="muted">{v.pages.length} page{v.pages.length !== 1 ? "s" : ""} · {fmtDuration(v.duration_sec)}</span>
+        <span className="chip">{SOURCE_LABEL[v.source] || v.source}{v.source_host ? `: ${v.source_host}` : ""}</span>
+        {v.campaign && <span className="chip strong">Email: {v.campaign}</span>}
+      </div>
+      <ul className="visit-pages">
+        {v.pages.map((pg, i) => (
+          <li key={i}>
+            <span className="faint tnum small">{pg.t.slice(11, 16)}</span>
+            <span>{pg.title}<br /><code>{pg.path}</code></span>
+            <span className="chip">{CATEGORY_LABEL[pg.category] || pg.category}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** One row per person (same network + browser); most recent visitor first, visits inside. */
+function Person({ p, visits, open, onToggle }) {
   return (
     <div className="visit">
       <button className="visit-head" onClick={onToggle} aria-expanded={open}>
         <span className={`caret${open ? " open" : ""}`}>▶</span>
-        <b className="tnum">{fmtDate(v.start, true)}</b>
-        <span className="muted">Person {v.visitor}</span>
-        <span className="muted">{v.pages.length} page{v.pages.length !== 1 ? "s" : ""} · {fmtDuration(v.duration_sec)}</span>
-        <span className="chip">{SOURCE_LABEL[v.source] || v.source}{v.source_host ? `: ${v.source_host}` : ""}</span>
-        {v.campaign && <span className="chip strong">Email: {v.campaign}</span>}
-        <span className="faint small" style={{ marginLeft: "auto" }}>{v.device} · {v.browser}</span>
+        <b>Person {p.person}</b>
+        <span className="muted">last visit <b className="tnum">{fmtDate(p.last, true)}</b></span>
+        <span className="muted">{p.visits} visit{p.visits !== 1 ? "s" : ""} · {p.pages} page{p.pages !== 1 ? "s" : ""}</span>
+        {p.conversion && <span className="chip strong">Conversion page</span>}
+        <span className="faint small" style={{ marginLeft: "auto" }}>
+          {p.first.slice(0, 10) !== p.last.slice(0, 10) ? `since ${fmtDate(p.first)} · ` : ""}{p.device} · {p.browser}
+        </span>
       </button>
       {open && (
-        <ul className="visit-pages">
-          {v.pages.map((p, i) => (
-            <li key={i}>
-              <span className="faint tnum small">{p.t.slice(11, 16)}</span>
-              <span>{p.title}<br /><code>{p.path}</code></span>
-              <span className="chip">{CATEGORY_LABEL[p.category] || p.category}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="visit-body">
+          {visits.map((v) => <VisitPages key={v.start} v={v} />)}
+          {visits.length < p.visits && <div className="small faint">Latest {visits.length} of {p.visits} visits shown.</div>}
+        </div>
       )}
     </div>
   );
@@ -58,7 +77,7 @@ function Visit({ v, open, onToggle }) {
 export default function Account() {
   const { key } = useParams();
   const accounts = useData("accounts");
-  const [openVisits, setOpenVisits] = useState({ 0: true });
+  const [openPeople, setOpenPeople] = useState({ 1: true });
   if (!accounts) return <div className="loading">Loading…</div>;
   const a = accounts.find((x) => x.key === key);
   if (!a) return <div className="empty">Account not found. <Link to="/">Back to accounts</Link></div>;
@@ -125,13 +144,14 @@ export default function Account() {
             </Card>
           )}
 
-          <Card title="Visit timeline" sub={`${a.visits} visits by ${a.visitors} ${a.visitors === 1 ? "person" : "people"} · newest first${a.visit_log.length < a.visits ? ` · latest ${a.visit_log.length} shown` : ""}`}
-                right={<button className="btn-link small" onClick={() => setOpenVisits(
-                  Object.keys(openVisits).length > 1 ? {} : Object.fromEntries(a.visit_log.map((_, i) => [i, true])))}>
-                  {Object.keys(openVisits).length > 1 ? "Collapse all" : "Expand all"}</button>}>
-            {a.visit_log.map((v, i) => (
-              <Visit key={i} v={v} open={!!openVisits[i]}
-                     onToggle={() => setOpenVisits((o) => { const n = { ...o }; if (n[i]) delete n[i]; else n[i] = true; return n; })} />
+          <Card title="Visit timeline"
+                sub={`${a.visitors} ${a.visitors === 1 ? "person" : "people"} · ${a.visits} visits · most recent visitor first. A person is one network + browser combination.`}
+                right={a.people.length > 1 && <button className="btn-link small" onClick={() => setOpenPeople(
+                  Object.keys(openPeople).length > 1 ? {} : Object.fromEntries(a.people.map((p) => [p.person, true])))}>
+                  {Object.keys(openPeople).length > 1 ? "Collapse all" : "Expand all"}</button>}>
+            {a.people.map((p) => (
+              <Person key={p.person} p={p} visits={a.visit_log.filter((v) => v.visitor === p.person)} open={!!openPeople[p.person]}
+                      onToggle={() => setOpenPeople((o) => { const n = { ...o }; if (n[p.person]) delete n[p.person]; else n[p.person] = true; return n; })} />
             ))}
           </Card>
         </div>
@@ -167,8 +187,16 @@ export default function Account() {
           </Card>
 
           {a.contacts.length > 0 && (
-            <Card title="Known CRM contacts" sub="Campaign-email recipients who clicked from this account's network">
-              {a.contacts.map((u) => <div key={u}><Link to={`/contacts?q=${u}`}><code className="small">{u}</code></Link></div>)}
+            <Card title="Known CRM contacts" sub="Campaign-email recipients who clicked from this account's network. In production the CRM supplies their names.">
+              <div style={{ display: "grid", gap: 8 }}>
+                {a.contacts.map((c) => (
+                  <div key={c.uid}>
+                    <Link to={`/contacts?q=${c.uid}&status=all`}>{c.alias}</Link>{" "}
+                    {c.status === "engaged" ? <span className="pill good">✓ Engaged</span> : <span className="pill cold">Clicked</span>}
+                    <div><code className="small faint">{c.uid}</code></div>
+                  </div>
+                ))}
+              </div>
             </Card>
           )}
         </div>

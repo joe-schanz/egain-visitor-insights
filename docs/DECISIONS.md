@@ -230,3 +230,22 @@ quality (funnel, daily traffic with the gap shown explicitly) · How it works.
 - Light and dark themes follow the OS; layout works down to phone width.
 - Partner-marketplace referrals (e.g. arriving from `appfoundry.genesys.com`) become a tech-stack talking point.
 **Rejected:** a server/API (nothing to compute at request time); a component library (heavier, less distinctive).
+
+## D-017 · Design review changes (Nov 17)
+**Look and feel:** matched eGain.com so the tool looks at home in their stack: magenta `#B91D8F` accent with pink
+tints, aqua `#007FAD`, black type on white, Helvetica Neue headings and Open Sans body (eGain's licensed Helvetica
+Neue LT Pro falls back to the system Helvetica, so it stays free), pill-shaped controls, underlined active nav.
+No eGain logo: this is a prototype, not an official eGain product. Chart colours (aqua, amber, magenta) pass the
+colour-blind separation check in both themes.
+**Call this week:** the accounts page opens with one card per Hot account (score, sector, the single strongest
+reason), and the table gains a Next step column ("Call this week · Viewed the demo request form").
+**Timeline by person:** the dossier groups visits under each person (network + browser), most recent visitor first,
+with visit and page counts; expanding a person shows their visits and pages. Up to 10 visits per person are kept.
+**Contact aliases:** CRM IDs carry no name, and only 39 of 5,060 human clickers came from an identified network.
+Those read "Moscow Exchange contact 4"; the rest read "EMEA contact 0535" (region from the campaign name, numbered
+by first click). The CRM ID stays underneath; in production the CRM supplies the real name.
+**Bug fixed:** a press release titled "…pilot program for generative AI" matched the conversion rule (`pilot`), so a
+school district looked like it had asked for a trial. News is now checked before conversion. Cabot Public Schools
+fell from 61 to 41 (still Warm on engagement: 10 people, 30 visits). No Hot account changed.
+**Name fix:** registry names cut at 60 characters are corrected by hand (`NAME_FIX`), e.g. GuideStone Financial
+Resources; the raw registry name is still shown in the dossier.
