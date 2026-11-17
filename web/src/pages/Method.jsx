@@ -16,6 +16,7 @@ const NEXT = [
   ["Commercial identity resolution", "6sense, Demandbase, ZoomInfo or Dealfront plug into the identification step. They resolve home-office, VPN and gateway traffic that free data can't, so far more visits get a company name."],
   ["Live pipeline", "Run nightly on the log stream (or a tag on the site), keep history, and alert account owners in Slack/CRM when an account turns Hot."],
   ["CRM sync", "Match campaign contact IDs and accounts to Dynamics/Salesforce records; show owner, open opportunities and last activity; write the score back to CRM."],
+  ["Flag current customers", "Visits from existing customers (support, login and community pages) are flagged: buying signals go to the account manager as upsell leads, help-seeking goes to Support or the CSM, and nobody cold-calls a customer."],
   ["Tune the score on outcomes", "Re-weight Fit/Intent/Engagement against closed-won pipeline once there are labels; keep the explanation."],
   ["First-party identity", "Form fills and authenticated sessions (a cookie ID) would remove most IP guesswork for known contacts."],
   ["Privacy & compliance", "Company-level only, IPs masked in the UI, GDPR/CCPA review, retention limits, opt-out honored."],

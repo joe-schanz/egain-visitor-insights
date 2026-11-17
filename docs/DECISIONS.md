@@ -249,3 +249,7 @@ school district looked like it had asked for a trial. News is now checked before
 fell from 61 to 41 (still Warm on engagement: 10 people, 30 visits). No Hot account changed.
 **Name fix:** registry names cut at 60 characters are corrected by hand (`NAME_FIX`), e.g. GuideStone Financial
 Resources; the raw registry name is still shown in the dossier.
+**Final polish:** `utm_campaign` values that aren't campaign codes (open-redirect probes such as `//bestbuy.com/..`)
+are left out of the campaign list. Page titles keep product casing (AI, CX, IT, eGain, KMWorld). More registry and
+Wikidata names fixed by hand (`NAME_FIX`): "State of Washington" not "Washington", "OTP Bank" not "OTP Bank Nyrt.
+Hungary", "ACC-HGGC" not "Acc-Hggc". Production next steps gain "Flag current customers", to match the deck.

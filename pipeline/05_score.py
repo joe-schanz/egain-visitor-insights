@@ -41,7 +41,16 @@ INTENT_POINTS = [("conversion", 20, "Viewed a conversion page (demo, contact, pr
 
 NON_TARGET = {"Education", "Other"}
 # Registry names cut off at 60 characters, fixed by hand (raw name is still shown in the dossier)
-NAME_FIX = {"Guidestone Financial Resources of the Southern Baptist Conve": "GuideStone Financial Resources"}
+# or tidied badly (all-caps names, stripped legal suffixes), or where Wikidata's label is the place, not the body
+NAME_FIX = {"Guidestone Financial Resources of the Southern Baptist Conve": "GuideStone Financial Resources",
+            "Acc-Hggc": "ACC-HGGC", "MEDICA": "Medica", "JPMX": "J.P. Morgan (Tokyo network)",
+            "Washington": "State of Washington", "Minnesota": "State of Minnesota", "Bristol": "Bristol City Council",
+            "OTP Bank Nyrt. Hungary": "OTP Bank", "Pjsccb Pravex-Bank": "Pravex Bank",
+            "AECI Information Services ()": "AECI Information Services", "M1": "M1 (Singapore)",
+            "LINZ STROM GAS WAERME fuer Energiedienstleistungen und Telekommunikation": "Linz Strom Gas Wärme"}
+# campaign codes are letters, digits, _ and -; anything else in utm_campaign is open-redirect probing
+VALID_CAMPAIGN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
+
 
 COMPETITORS = re.compile(r"incontact|\bnice\b|genesys|five9|verint|zendesk|talkdesk|freshworks|kore\.ai|"
                          r"liveperson|8x8|avaya|ujet|sprinklr|servicenow|salesforce", re.I)
@@ -75,12 +84,31 @@ def page_phrase(path: str) -> str:
     return PAGE_TITLES.get(slug, title_from_path(path))
 
 
+WORD_CASE = {"ai": "AI", "cx": "CX", "ex": "EX", "km": "KM", "ivr": "IVR", "crm": "CRM", "roi": "ROI", "faq": "FAQ",
+             "aws": "AWS", "sap": "SAP", "ibm": "IBM", "egain": "eGain", "chatgpt": "ChatGPT", "genai": "GenAI",
+             "kmworld": "KMWorld", "safeswitch": "SafeSwitch", "servicenow": "ServiceNow", "salesforce": "Salesforce",
+             "genesys": "Genesys", "microsoft": "Microsoft", "amazon": "Amazon", "gartner": "Gartner",
+             "forrester": "Forrester", "cisco": "Cisco", "avaya": "Avaya", "zendesk": "Zendesk", "five9": "Five9"}
+
+
 def title_from_path(path: str) -> str:
     if path in ("/", ""):
         return "Home"
     slug = [p for p in path.split("?")[0].split("/") if p][-1]
-    slug = [p for p in path.split("?")[0].split("/") if p][-1]
-    return re.sub(r"[-_]+", " ", slug).strip().capitalize()[:80]
+    words = re.sub(r"[-_]+", " ", slug).strip().lower().split()
+    if len(words) > 1 and words[0].isdigit():          # "1_ai_knowledge_platform" -> "AI knowledge platform"
+        words = words[1:]
+    out = []
+    for i, w in enumerate(words):
+        if w == "it" and i and words[i - 1] == "in":    # "knowledge management in IT"
+            w = "IT"
+        else:
+            w = WORD_CASE.get(w, w)
+        out.append(w)
+    text = " ".join(out)
+    if not text:
+        return "Home"
+    return (text if text.startswith("eGain") else text[0].upper() + text[1:])[:80]
 
 
 MARKETPLACES = {"appfoundry.genesys.com": "Genesys", "appexchange.salesforce.com": "Salesforce",
@@ -414,7 +442,7 @@ def main() -> None:
                                  .sort_values(ascending=False).items()],
         "top_pages": [[p, title_from_path(p), int(c)] for p, c in signal["path"].value_counts().head(25).items()],
         "campaigns": [{"campaign": k, **{s: int(r.get(s, 0)) for s in ["scanner_only", "clicked", "engaged"]}}
-                      for k, r in camp.iterrows()],
+                      for k, r in camp.iterrows() if VALID_CAMPAIGN.fullmatch(k) and not k.startswith("aHR0")],
         "contacts_by_status": report["contacts_by_status"],
         "tiers": pd.Series([a["tier"] for a in accounts]).value_counts().to_dict(),
         "sectors": pd.Series([a["sector"] for a in accounts]).value_counts().to_dict(),

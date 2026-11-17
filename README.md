@@ -107,8 +107,10 @@ organizations came out of those.
 2. **CRM sync** (Dynamics or Salesforce). Campaign links already carry the CRM contact ID, so this adds real
    contact names, the account owner and open opportunities, and writes the score back to the account.
 3. **Live pipeline and alerts:** nightly runs with history, plus a Slack or CRM alert when an account turns Hot.
-4. **Tune the score** against closed-won deals, keeping every point explainable.
-5. **Access and privacy:** SSO login, company-level data only, a GDPR and CCPA review, and retention limits.
+4. **Flag current customers:** buying signals from existing customers go to the account manager as upsell leads,
+   and help-seeking goes to Support, so nobody cold-calls a customer.
+5. **Tune the score** against closed-won deals, keeping every point explainable.
+6. **Access and privacy:** SSO login, company-level data only, a GDPR and CCPA review, and retention limits.
 
 ## Privacy
 
