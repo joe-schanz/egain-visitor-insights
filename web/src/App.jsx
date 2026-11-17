@@ -36,7 +36,7 @@ export default function App() {
             <NavLink to="/overview">Traffic &amp; data quality</NavLink>
             <NavLink to="/method">How it works</NavLink>
           </nav>
-          <div className="topbar-meta">eGain.com weblog · Feb 1–25, 2025</div>
+          <div className="topbar-meta">eGain.com weblog · Feb 1–25, 2025 · <a href="/logout">Sign out</a></div>
         </div>
       </header>
       <main>

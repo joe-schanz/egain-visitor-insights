@@ -114,8 +114,10 @@ organizations came out of those.
 
 ## Privacy
 
-The app shows company-level data only, and visitor IP addresses are masked (`16.98.8.x`). This public prototype
-has no login. A production version would sit behind company sign-in.
+The app shows company-level data only, and visitor IP addresses are masked (`16.98.8.x`). Every page and data file
+sits behind a sign-in page (`web/middleware.js`, run by Vercel in front of each request): an @egain.com email address
+plus a shared password kept in the `SITE_PASSWORD` environment variable, never in the code. Sessions last 7 days, and
+changing the password signs everyone out. A production version would use eGain's single sign-on instead.
 
 ## Stack
 

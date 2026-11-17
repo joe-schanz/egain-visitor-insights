@@ -253,3 +253,13 @@ Resources; the raw registry name is still shown in the dossier.
 are left out of the campaign list. Page titles keep product casing (AI, CX, IT, eGain, KMWorld). More registry and
 Wikidata names fixed by hand (`NAME_FIX`): "State of Washington" not "Washington", "OTP Bank" not "OTP Bank Nyrt.
 Hungary", "ACC-HGGC" not "Acc-Hggc". Production next steps gain "Flag current customers", to match the deck.
+
+## D-018 · Sign-in gate
+**Decision:** every request, pages and data files alike, passes through Vercel Routing Middleware (`web/middleware.js`).
+Visitors sign in with any @egain.com address plus one shared password stored in the `SITE_PASSWORD` environment
+variable. A signed (HMAC) session cookie lasts 7 days; HttpOnly, Secure, SameSite=Lax. Without `SITE_PASSWORD` the site
+serves nothing (fails closed). Redirects after sign-in stay on the site. Data files are cached as `private`.
+**Why:** it's eGain's data (company names, CRM contact IDs, visit histories) and shouldn't be open to the internet.
+Free on the Hobby plan; Vercel's own password protection needs Pro.
+**Limits:** the email address isn't verified, so the password is the real lock. Production would use eGain's SSO.
+**Rejected:** a password check in the React app (the JSON data files would still be public).
