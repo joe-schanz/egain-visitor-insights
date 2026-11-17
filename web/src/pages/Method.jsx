@@ -13,7 +13,7 @@ const STEPS = [
 ];
 
 const NEXT = [
-  ["Commercial identity resolution", "6sense, Demandbase, ZoomInfo or Dealfront plug into the identification step. They resolve home-office and gateway traffic that free data can't, typically 10–30× more named accounts."],
+  ["Commercial identity resolution", "6sense, Demandbase, ZoomInfo or Dealfront plug into the identification step. They resolve home-office, VPN and gateway traffic that free data can't, so far more visits get a company name."],
   ["Live pipeline", "Run nightly on the log stream (or a tag on the site), keep history, and alert account owners in Slack/CRM when an account turns Hot."],
   ["CRM sync", "Match campaign contact IDs and accounts to Dynamics/Salesforce records; show owner, open opportunities and last activity; write the score back to CRM."],
   ["Tune the score on outcomes", "Re-weight Fit/Intent/Engagement against closed-won pipeline once there are labels; keep the explanation."],
