@@ -8,15 +8,19 @@
   --text: #000000;
   --text-2: #4a4a4a;
   --text-3: #858585;
-  --accent: #b91d8f;
-  --accent-hover: #9a1677;
-  --accent-soft: #fef0fd;
-  --accent-line: #ffe1fd;
+  /* magenta = eGain brand (top bar, Call this week); blue = working colour (scores, signals, controls) */
+  --brand: #b91d8f;
+  --brand-soft: #fef0fd;
+  --brand-line: #ffe1fd;
+  --accent: #1a73c8;
+  --accent-hover: #135a9e;
+  --accent-soft: #eaf3fc;
+  --accent-line: #cfe3f7;
   --aqua: #007fad;
   --series-1: #007fad;
   --series-2: #c77700;
   --series-3: #b91d8f;
-  --seq-1: #d57fbd;
+  --seq-1: #7fb4e6;
   --hot: #b3261e;
   --hot-bg: #fdecea;
   --warm: #8a5300;
@@ -39,15 +43,18 @@
     --text: #f4f4f4;
     --text-2: #c4c4c4;
     --text-3: #8f8f8f;
-    --accent: #e070c1;
-    --accent-hover: #ec93d3;
-    --accent-soft: #3a1932;
-    --accent-line: #57244b;
+    --brand: #e070c1;
+    --brand-soft: #3a1932;
+    --brand-line: #57244b;
+    --accent: #5aa9e6;
+    --accent-hover: #85c0ee;
+    --accent-soft: #14273a;
+    --accent-line: #1f3d5c;
     --aqua: #4fb3dc;
     --series-1: #2a92c4;
     --series-2: #b87d22;
     --series-3: #d1509e;
-    --seq-1: #a8457f;
+    --seq-1: #3577b0;
     --hot: #f08a80;
     --hot-bg: #3a1f1c;
     --warm: #f0b54a;
@@ -94,7 +101,7 @@ h3 { font-size: 13px; font-weight: 600; color: var(--text-2); text-transform: up
 }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text); white-space: nowrap; }
 .brand:hover { text-decoration: none; }
-.brand-mark { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; }
+.brand-mark { width: 26px; height: 26px; border-radius: 50%; background: var(--brand); display: grid; place-items: center; }
 .brand small { font-weight: 500; color: var(--text-3); margin-left: 4px; }
 .nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
 .nav { align-self: stretch; }
@@ -102,8 +109,8 @@ h3 { font-size: 13px; font-weight: 600; color: var(--text-2); text-transform: up
   color: var(--text); padding: 0 12px; font-weight: 500; white-space: nowrap; display: flex; align-items: center;
   border-bottom: 3px solid transparent; border-top: 3px solid transparent;
 }
-.nav a:hover { text-decoration: none; color: var(--accent); }
-.nav a.active { color: var(--accent); font-weight: 700; border-bottom-color: var(--accent); }
+.nav a:hover { text-decoration: none; color: var(--brand); }
+.nav a.active { color: var(--brand); font-weight: 700; border-bottom-color: var(--brand); }
 .topbar-meta { margin-left: auto; color: var(--text-3); font-size: 12px; white-space: nowrap; }
 main { max-width: 1280px; margin: 0 auto; padding: 28px 24px 64px; }
 .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -289,17 +296,17 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .callweek-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 .callcard {
   display: grid; gap: 4px; align-content: start; padding: 14px 16px; border-radius: var(--radius);
-  background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--accent);
+  background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--brand);
   color: var(--text); box-shadow: var(--shadow); transition: border-color .15s, background .15s;
 }
-.callcard:hover { text-decoration: none; color: var(--text); background: var(--accent-soft); border-color: var(--accent-line); border-top-color: var(--accent); }
+.callcard:hover { text-decoration: none; color: var(--text); background: var(--brand-soft); border-color: var(--brand-line); border-top-color: var(--brand); }
 .callcard-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
 .callcard-name { font-weight: 700; line-height: 1.3; }
 .callcard-score {
   flex: none; min-width: 34px; height: 26px; padding: 0 8px; border-radius: 999px; display: grid; place-items: center;
-  background: var(--accent); color: #fff; font-weight: 700; font-size: 13px;
+  background: var(--brand); color: #fff; font-weight: 700; font-size: 13px;
 }
-.callcard-why { font-weight: 600; color: var(--accent); margin-top: 4px; }
+.callcard-why { font-weight: 600; color: var(--brand); margin-top: 4px; }
 .next-step { font-weight: 700; }
 .next-step.hot { color: var(--hot); }
 .next-step.warm { color: var(--warm); }
